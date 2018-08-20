@@ -17,6 +17,9 @@ from visualization_msgs.msg import Marker
 
 COMMAND_PERIOD = 1000
 
+MAX_SPEED = 1
+SPEED = 0.25*MAX_SPEED
+DELAY = 2
 
 class AutonomousFlight():
     def __init__(self):
@@ -58,7 +61,7 @@ class AutonomousFlight():
         self.rate.sleep()
     
     def cbNavdata(self, msg):
-        # print(msg)
+        #print(msg)
         self.navdata = msg
     
     def cbOdom(self, msg):
@@ -70,9 +73,9 @@ class AutonomousFlight():
         #print(self.mark)
    
     def printNavdata(self):
-        nd = self.navdata;
-        print('NAVDATA -- bt: ' + str(nd.batteryPercent) + '\n'\
-            'speed: ' + str(nd.vx) + ', ' + str(nd.vy) + ', ' + str(nd.vx) + \
+        nd = self.navdata
+        print('NAVDATA -- bt: ' + str(nd.batteryPercent) + \
+            '\nspeed: ' + str(nd.vx) + ', ' + str(nd.vy) + ', ' + str(nd.vx) + \
             '\nangles: ' + str(nd.rotX) + ', ' + str(nd.rotY) + ', ' + str(nd.rotZ))
 
     def printOdom(self):
@@ -89,25 +92,70 @@ class AutonomousFlight():
             'pose: ' + str(mk.pose.position.x) + ',' +\
             str(mk.pose.position.y) + ', ' + str(mk.pose.position.z))
 
-
     def printData(self):
         self.printNavdata()
         self.printOdom()
         self.printMark()
         print
         pass
-    
+
+    def controlAZ(self):
+        vz = (self.navdata.rotZ/(180/7))
+        if abs(vz > 1): vz = 1
+        print("Control Orientation rotZ: " + str(self.navdata.rotZ) + ", vz: " +  str(vz))
+        self.SetCommand(0,0,0,vz,0,0)
+        pass
+
+    def droneTask(self, time_pass):
+        #if(abs(self.navdata.rotZ) > 5):
+        #    self.controlAZ()
+        #    return
+
+        if time_pass > 6*DELAY:
+            self.SetCommand(0,0,0,0,0,0)
+            print("Drone Finish - rotZ: " + str(self.navdata.rotZ))            
+        elif time_pass > 5*DELAY:
+            self.SetCommand(SPEED,0,0,0,0,0)
+            print("Drone Foward - rotZ: " + str(self.navdata.rotZ))            
+        elif time_pass > 4*DELAY:
+            self.SetCommand(0,-SPEED,0,0,0,0)
+            print("Drone Right - rotZ: " + str(self.navdata.rotZ))
+        elif time_pass > 3*DELAY:
+            print("Drone Back - rotZ: " + str(self.navdata.rotZ))
+            self.SetCommand(-SPEED,0,0,0,0,0)
+        elif time_pass > 2*DELAY:
+            self.SetCommand(0,SPEED,0,0,0,0)
+            print("Drone Left - rotZ: " + str(self.navdata.rotZ))
+        elif time_pass > DELAY:
+            print("Drone Foward - rotZ: " + str(self.navdata.rotZ))
+            self.SetCommand(SPEED,0,0,0,0,0)    
+        
 if __name__ == '__main__':
     try:
-        i = 0
         uav = AutonomousFlight()
         #rospy.spin()
+        now = time.time()
+        last_time = now
+
+        # tempo de loop ~ 100 ms        
         while not rospy.is_shutdown():
-            uav.printData()
-            time.sleep(1)
-            #uav.SendTakeOff()
-            #uav.SetCommand(0,0,1,0,0,0) 
-    
-    
+            ##uav.printData()
+            ##time.sleep(1)
+            # Time loop
+            now = time.time()
+            
+            st = uav.navdata.state
+            if st == 2:
+                uav.SendTakeOff()
+                last_time = time.time()
+            elif st == 3 or st == 4 or st == 7:
+                #uav.printNavdata()
+                #print(uav.navdata.rotZ)
+                #uav.droneTask(now - last_time);     
+                pass
+            else:
+                uav.SetCommand(0,0,0,0,0,0)
+                print('Drone state: ' + str(st))
+
     except rospy.ROSInterruptException:
         pass
