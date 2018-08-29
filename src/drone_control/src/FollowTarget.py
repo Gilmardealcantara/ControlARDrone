@@ -23,9 +23,8 @@ DELAY = 2
 # tempo de amostragem
 T = 100
 
-class AutonomousFlight():
+class FollowTarget():
     def __init__(self):
-        self.status = ""
         rospy.init_node('forward', anonymous=False)
         rospy.Subscriber("/ardrone/navdata", Navdata, self.cbNavdata)
         # rospy.Subscriber("/ardrone/odometry", Odometry, self.cbOdom)
@@ -42,9 +41,9 @@ class AutonomousFlight():
         self.command = Twist()
         self.pid = {
             'az': PID(T * 0.001, (1.0/180.0), 0, 0, "Orientation"),
-            'z': PID(T * 0.001, 0.5, 0, 0, "Altitude"),
-            'x': PID(T * 0.001, 0.5, 0, 0, "X Position"),
-            'y': PID(T * 0.001, 0.5, 0, 0, "Y Position")
+            'z': PID(T * 0.001, 0.5, 0.0, 0.0, "Altitude"),
+            'x': PID(T * 0.001, 2.0, 0.0, 0.0, "X Position"),
+            'y': PID(T * 0.001, 0.5, 0.0, 0.0, "Y Position")
         }
         #self.commandTimer = rospy.Timer(rospy.Duration(COMMAND_PERIOD/1000.0),self.SetCommand)
         self.state_change_time = rospy.Time.now()
@@ -124,9 +123,9 @@ class AutonomousFlight():
         if vel > SPEED: return SPEED
         elif vel < -SPEED: return -SPEED
         return vel
-    
+
     def controlAZ(self, ref):
-        self.pid['az'].err = ref - self.navdata.rotZ 
+        self.pid['az'].err = ref - self.navdata.rotZ
         vel = self.pid['az'].get_vel()
         
         # print("Control Orientation:" + \
@@ -136,72 +135,28 @@ class AutonomousFlight():
         #     "\npid: " + str(vel) 
         # )
 
+        # if self.navdata.rotZ > 1 : vel = -1
+        # if self.navdata.rotZ < -1 : vel = 1
+            
         self.command.angular.z = self.saturation(vel)
         self.pid['az'].last_err = self.pid['az'].err
         
     def controlZ(self, ref):
-        self.pid['z'].err = ref - self.odom.pose.pose.position.z 
-        vel = self.pid['z'].get_vel()
-        
-        # print("Control Altitude:" + \
-        #     "\nodom_z: " + str(self.odom.pose.pose.position.z ) + \
-        #     "\nref: " +  str(ref) + \
-        #     "\nerr: " + str(self.pid['z'].err) + \
-        #     "\npid: " + str(vel) 
-        # )
+        pass
 
-        self.command.linear.z = self.saturation(vel)
-        self.pid['z'].last_err = self.pid['z'].err
-        
     def controlY(self, ref):
-        self.pid['y'].err = ref - self.odom.pose.pose.position.y 
-        vel = self.pid['y'].get_vel()
-        
-        # print("Control Position y:" + \
-        #     "\nodom_y: " + str(self.odom.pose.pose.position.y ) + \
-        #     "\nref: " +  str(ref) + \
-        #     "\nerr: " + str(self.pid['y'].err) + \
-        #     "\npid: " + str(vel) 
-        # )
+        pass
 
-        self.command.linear.y = self.saturation(vel)
-        self.pid['y'].last_err = self.pid['y'].err
-        
-
-
-    def controlX(self, ref):
-        self.pid['x'].err = ref - self.odom.pose.pose.position.x 
+    def controlDistance(self, ref):
+        self.pid['x'].err = self.mark.pose.position.z - ref
         vel = self.pid['x'].get_vel()
         
-        # print("Control Position x:" + \
-        #     "\nodom_x: " + str(self.odom.pose.pose.position.x ) + \
-        #     "\nref: " +  str(ref) + \
-        #     "\nerr: " + str(self.pid['x'].err) + \
-        #     "\npid: " + str(vel) 
+        # print("Control Distance x:" +
+        #     "\nmark_z : " + str(self.mark.pose.position.z) +
+        #     "\nref: " +  str(ref) +
+        #     "\nerr: " + str(self.pid['x'].err) +
+        #     "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
         # )
 
-
         self.command.linear.x = self.saturation(vel)
-        self.pid['x'].last_err = self.pid['x'].err
-        
-
-    def droneTask(self, time_pass):
-        
-        if time_pass > 6*DELAY:
-            self.SetCommand(0,0,0,0,0,0)
-            # print("Drone Finish - rotZ: " + str(self.navdata.rotZ))            
-        elif time_pass > 5*DELAY:
-            self.SetCommand(SPEED,0,0,0,0,0)
-            # print("Drone Foward - rotZ: " + str(self.navdata.rotZ))            
-        elif time_pass > 4*DELAY:
-            self.SetCommand(0,-SPEED,0,0,0,0)
-            # print("Drone Right - rotZ: " + str(self.navdata.rotZ))
-        elif time_pass > 3*DELAY:
-            self.SetCommand(-SPEED,0,0,0,0,0)
-            # print("Drone Back - rotZ: " + str(self.navdata.rotZ))
-        elif time_pass > 2*DELAY:
-            self.SetCommand(0,SPEED,0,0,0,0)
-            # print("Drone Left - rotZ: " + str(self.navdata.rotZ))
-        elif time_pass > DELAY:
-            self.SetCommand(SPEED,0,0,0,0,0)    
-            # print("Drone Foward - rotZ: " + str(self.navdata.rotZ))
+        self.pid['x'].last_err = self.pid['x'].err      
