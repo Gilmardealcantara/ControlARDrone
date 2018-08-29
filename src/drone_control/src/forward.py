@@ -120,15 +120,24 @@ def mark_rountine():
             now = time.time()
             st = uav.navdata.state
             print('\nDrone state: ' + str(st))
-            uav.printMark()
+            
+            now = rospy.get_rostime()
+            # print("Current time %i %i", now.secs, now.nsecs)
+            # print("AR-Mark time %s %s", uav.mark.header.stamp.secs, uav.mark.header.stamp.nsecs)
+            
+            # uav.printMark()
             if st == 2:
                 uav.SendTakeOff()
                 last_time = time.time()
                 # elif st == 3 or st == 4 or st == 7:
             elif st == 3:
-                uav.controlAZ(0.0)
-                uav.controlDistance(0.4)
-                
+                if now.secs - uav.mark.header.stamp.secs <= 1:
+                    uav.controlAZ(0.0)
+                    uav.controlDistance(0.2)
+                else:
+                    uav.SetCommand(0,0,0,0,0,0)
+                pass
+
             uav.SendCommand() 
             
     except rospy.ROSInterruptException:

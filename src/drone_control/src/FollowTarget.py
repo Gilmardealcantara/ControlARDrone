@@ -79,7 +79,7 @@ class FollowTarget():
 
     def cbMarker(self, msg):
         self.mark = msg
-        #print(self.mark)
+        # print(self.mark.header)
    
     def printNavdata(self):
         nd = self.navdata
@@ -151,12 +151,12 @@ class FollowTarget():
         self.pid['x'].err = self.mark.pose.position.z - ref
         vel = self.pid['x'].get_vel()
         
-        # print("Control Distance x:" +
-        #     "\nmark_z : " + str(self.mark.pose.position.z) +
-        #     "\nref: " +  str(ref) +
-        #     "\nerr: " + str(self.pid['x'].err) +
-        #     "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
-        # )
+        print("Control Distance x:" +
+            "\nmark_z : " + str(self.mark.pose.position.z) +
+            "\nref: " +  str(ref) +
+            "\nerr: " + str(self.pid['x'].err) +
+            "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
+        )
 
         self.command.linear.x = self.saturation(vel)
         self.pid['x'].last_err = self.pid['x'].err      
