@@ -126,6 +126,8 @@ def mark_rountine():
             # print("AR-Mark time %s %s", uav.mark.header.stamp.secs, uav.mark.header.stamp.nsecs)
             
             # uav.printMark()
+            # continue
+
             if st == 2:
                 uav.SendTakeOff()
                 last_time = time.time()
@@ -133,9 +135,12 @@ def mark_rountine():
             elif st == 3:
                 if now.secs - uav.mark.header.stamp.secs <= 1:
                     uav.controlAZ(0.0)
-                    uav.controlDistance(0.2)
+                    uav.controlDistance(0.4)
+                    uav.controlZ(0.0) # set point com relacao a y do alvo
+                    uav.controlWith(0.0) # set point con relacao a x do alvo
                 else:
                     uav.SetCommand(0,0,0,0,0,0)
+                    print("Lost target")
                 pass
 
             uav.SendCommand() 

@@ -41,9 +41,9 @@ class FollowTarget():
         self.command = Twist()
         self.pid = {
             'az': PID(T * 0.001, (1.0/180.0), 0, 0, "Orientation"),
-            'z': PID(T * 0.001, 0.5, 0.0, 0.0, "Altitude"),
+            'z': PID(T * 0.001, 5.0, 0.0, 0.0, "Altitude"),
             'x': PID(T * 0.001, 2.0, 0.0, 0.0, "X Position"),
-            'y': PID(T * 0.001, 0.5, 0.0, 0.0, "Y Position")
+            'y': PID(T * 0.001, 5.5, 0.0, 0.0, "Y Position")
         }
         #self.commandTimer = rospy.Timer(rospy.Duration(COMMAND_PERIOD/1000.0),self.SetCommand)
         self.state_change_time = rospy.Time.now()
@@ -142,21 +142,43 @@ class FollowTarget():
         self.pid['az'].last_err = self.pid['az'].err
         
     def controlZ(self, ref):
-        pass
+        self.pid['z'].err = ref - self.mark.pose.position.y
+        vel = self.pid['z'].get_vel()
+        
+        #print("Control Altitude z:" +
+        #    "\nmark_y : " + str(self.mark.pose.position.y) +
+        #    "\nref: " +  str(ref) +
+        #    "\nerr: " + str(self.pid['z'].err) +
+        #    "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
+        #)
 
-    def controlY(self, ref):
-        pass
+        self.command.linear.z = self.saturation(vel)
+        self.pid['z'].last_err = self.pid['z'].err
+
+    def controlWith(self, ref):
+        self.pid['y'].err = ref - self.mark.pose.position.x
+        vel = self.pid['y'].get_vel()
+        
+        print("Control Lateral y:" +
+            "\nmark_x : " + str(self.mark.pose.position.x) +
+            "\nref: " +  str(ref) +
+            "\nerr: " + str(self.pid['y'].err) +
+            "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
+        )
+
+        self.command.linear.y = self.saturation(vel)
+        self.pid['y'].last_err = self.pid['y'].err 
 
     def controlDistance(self, ref):
         self.pid['x'].err = self.mark.pose.position.z - ref
         vel = self.pid['x'].get_vel()
         
-        print("Control Distance x:" +
-            "\nmark_z : " + str(self.mark.pose.position.z) +
-            "\nref: " +  str(ref) +
-            "\nerr: " + str(self.pid['x'].err) +
-            "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
-        )
+        #print("Control Distance x:" +
+        #    "\nmark_z : " + str(self.mark.pose.position.z) +
+        #    "\nref: " +  str(ref) +
+        #    "\nerr: " + str(self.pid['x'].err) +
+        #    "\npid vel: " + str(vel) + "\t max_vel: " + str(SPEED) 
+        #)
 
         self.command.linear.x = self.saturation(vel)
-        self.pid['x'].last_err = self.pid['x'].err      
+        self.pid['x'].last_err = self.pid['x'].err 
