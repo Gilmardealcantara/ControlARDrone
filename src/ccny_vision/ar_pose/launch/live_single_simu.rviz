@@ -7,9 +7,6 @@ Panels:
         - /Camera1
         - /TF1
         - /TF1/Frames1
-        - /TF1/Frames1/ardrone_base_bottomcam1
-        - /TF1/Frames1/ardrone_base_bottomcam1/Position1
-        - /TF1/Frames1/ar_marker1
       Splitter Ratio: 0.459184
     Tree Height: 273
   - Class: rviz/Selection
@@ -96,13 +93,7 @@ Visualization Manager:
           Value: true
         bottom_link:
           Value: false
-        cam_front:
-          Value: true
-        dummy_link:
-          Value: false
         front_link:
-          Value: true
-        map:
           Value: true
         nav:
           Value: true
@@ -123,8 +114,6 @@ Visualization Manager:
                 bottom_link:
                   ardrone_base_bottomcam:
                     {}
-                dummy_link:
-                  {}
                 front_link:
                   ardrone_base_frontcam:
                     ar_marker:
@@ -171,10 +160,10 @@ Visualization Manager:
         Z: 0.0163695
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.3848
+      Pitch: 0.4048
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.19716
+      Yaw: 5.46715
     Saved:
       - Class: rviz/Orbit
         Distance: 10
@@ -279,5 +268,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1316
-  X: 50
-  Y: 46
+  X: 42
+  Y: 10

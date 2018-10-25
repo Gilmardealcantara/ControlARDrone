@@ -1,0 +1,22 @@
+Verificat 
+- Velocidade a 0.25 da max
+- estados de voo  3, 4 e 7, simulação 3
+- mudar topico de captura de dados de odometria
+
+Fazer:
+criar graficos para monitor controle de posição
+
+
+
+
+lista de estados
+0: Unknown
+1: Inited
+2: Landed
+3,7: Flying
+4: Hovering
+5: Test (?)
+6: Taking off
+8: Landing
+9: Looping (?)
+
